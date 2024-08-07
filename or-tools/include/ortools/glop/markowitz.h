@@ -1,4 +1,4 @@
-// Copyright 2010-2024 Google LLC
+// Copyright 2010-2022 Google LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -103,10 +103,6 @@ class MatrixNonZeroPattern {
  public:
   MatrixNonZeroPattern() = default;
 
-  // This type is neither copyable nor movable.
-  MatrixNonZeroPattern(const MatrixNonZeroPattern&) = delete;
-  MatrixNonZeroPattern& operator=(const MatrixNonZeroPattern&) = delete;
-
   // Releases the memory used by this class.
   void Clear();
 
@@ -201,6 +197,8 @@ class MatrixNonZeroPattern {
   DenseBooleanRow bool_scratchpad_;
   std::vector<ColIndex> col_scratchpad_;
   ColIndex num_non_deleted_columns_;
+
+  DISALLOW_COPY_AND_ASSIGN(MatrixNonZeroPattern);
 };
 
 // Adjustable priority queue of columns. Pop() returns a column with the
@@ -209,10 +207,6 @@ class MatrixNonZeroPattern {
 class ColumnPriorityQueue {
  public:
   ColumnPriorityQueue() = default;
-
-  // This type is neither copyable nor movable.
-  ColumnPriorityQueue(const ColumnPriorityQueue&) = delete;
-  ColumnPriorityQueue& operator=(const ColumnPriorityQueue&) = delete;
 
   // Releases the memory used by this class.
   void Clear();
@@ -235,6 +229,7 @@ class ColumnPriorityQueue {
   StrictITIVector<ColIndex, int32_t> col_degree_;
   std::vector<std::vector<ColIndex>> col_by_degree_;
   int32_t min_degree_;
+  DISALLOW_COPY_AND_ASSIGN(ColumnPriorityQueue);
 };
 
 // Contains a set of columns indexed by ColIndex. This is like a SparseMatrix
@@ -244,12 +239,6 @@ class ColumnPriorityQueue {
 class SparseMatrixWithReusableColumnMemory {
  public:
   SparseMatrixWithReusableColumnMemory() = default;
-
-  // This type is neither copyable nor movable.
-  SparseMatrixWithReusableColumnMemory(
-      const SparseMatrixWithReusableColumnMemory&) = delete;
-  SparseMatrixWithReusableColumnMemory& operator=(
-      const SparseMatrixWithReusableColumnMemory&) = delete;
 
   // Resets the repository to num_cols empty columns.
   void Reset(ColIndex num_cols);
@@ -277,6 +266,7 @@ class SparseMatrixWithReusableColumnMemory {
   absl::StrongVector<ColIndex, int> mapping_;
   std::vector<int> free_columns_;
   std::vector<SparseColumn> columns_;
+  DISALLOW_COPY_AND_ASSIGN(SparseMatrixWithReusableColumnMemory);
 };
 
 // The class that computes either the actual L.U decomposition, or the
@@ -285,10 +275,6 @@ class SparseMatrixWithReusableColumnMemory {
 class Markowitz {
  public:
   Markowitz() = default;
-
-  // This type is neither copyable nor movable.
-  Markowitz(const Markowitz&) = delete;
-  Markowitz& operator=(const Markowitz&) = delete;
 
   // Computes the full factorization with P, Q, L and U.
   //
@@ -462,6 +448,8 @@ class Markowitz {
 
   // Number of floating point operations of the last factorization.
   int64_t num_fp_operations_;
+
+  DISALLOW_COPY_AND_ASSIGN(Markowitz);
 };
 
 }  // namespace glop

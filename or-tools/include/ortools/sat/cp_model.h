@@ -1,4 +1,4 @@
-// Copyright 2010-2024 Google LLC
+// Copyright 2010-2022 Google LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -48,7 +48,6 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "ortools/sat/cp_model.pb.h"
 #include "ortools/sat/cp_model_solver.h"
@@ -82,7 +81,7 @@ class BoolVar {
 
   /// Sets the name of the variable.
   /// Note that this will always set the "positive" version of this Boolean.
-  BoolVar WithName(absl::string_view name);
+  BoolVar WithName(const std::string& name);
 
   /// Returns the name of the variable.
   std::string Name() const;
@@ -97,8 +96,6 @@ class BoolVar {
   bool operator!=(const BoolVar& other) const {
     return other.builder_ != builder_ || other.index_ != index_;
   }
-
-  BoolVar operator~() const { return Not(); }
 
   std::string DebugString() const;
 
@@ -166,7 +163,7 @@ class IntVar {
   BoolVar ToBoolVar() const;
 
   /// Sets the name of the variable.
-  IntVar WithName(absl::string_view name);
+  IntVar WithName(const std::string& name);
 
   /// Returns the name of the variable (or the empty string if not set).
   std::string Name() const;
@@ -454,7 +451,7 @@ class IntervalVar {
   IntervalVar();
 
   /// Sets the name of the variable.
-  IntervalVar WithName(absl::string_view name);
+  IntervalVar WithName(const std::string& name);
 
   /// Returns the name of the interval (or the empty string if not set).
   std::string Name() const;
@@ -553,7 +550,7 @@ class Constraint {
   Constraint OnlyEnforceIf(BoolVar literal);
 
   /// Sets the name of the constraint.
-  Constraint WithName(absl::string_view name);
+  Constraint WithName(const std::string& name);
 
   /// Returns the name of the constraint (or the empty string if not set).
   const std::string& Name() const;
@@ -733,7 +730,7 @@ class CumulativeConstraint : public Constraint {
 class CpModelBuilder {
  public:
   /// Sets the name of the model.
-  void SetName(absl::string_view name);
+  void SetName(const std::string& name);
 
   /// Creates an integer variable with the given domain.
   IntVar NewIntVar(const Domain& domain);
@@ -1069,21 +1066,9 @@ class CpModelBuilder {
       DecisionStrategyProto::VariableSelectionStrategy var_strategy,
       DecisionStrategyProto::DomainReductionStrategy domain_strategy);
 
-  /// Adds a decision strategy on a list of integer variables.
+  /// Adds a decision strategy on a list of boolean variables.
   void AddDecisionStrategy(
       absl::Span<const BoolVar> variables,
-      DecisionStrategyProto::VariableSelectionStrategy var_strategy,
-      DecisionStrategyProto::DomainReductionStrategy domain_strategy);
-
-  /// Adds a decision strategy on a list of affine expressions.
-  void AddDecisionStrategy(
-      absl::Span<const LinearExpr> expressions,
-      DecisionStrategyProto::VariableSelectionStrategy var_strategy,
-      DecisionStrategyProto::DomainReductionStrategy domain_strategy);
-
-  /// Adds a decision strategy on a list of affine expressions.
-  void AddDecisionStrategy(
-      std::initializer_list<LinearExpr> expressions,
       DecisionStrategyProto::VariableSelectionStrategy var_strategy,
       DecisionStrategyProto::DomainReductionStrategy domain_strategy);
 
@@ -1110,7 +1095,7 @@ class CpModelBuilder {
   CpModelProto* MutableProto() { return &cp_model_; }
 
   /// Export the model to file.
-  bool ExportToFile(absl::string_view filename) const;
+  bool ExportToFile(const std::string& filename) const;
 
   /// Returns a cloned version of the current model.
   CpModelBuilder Clone() const;

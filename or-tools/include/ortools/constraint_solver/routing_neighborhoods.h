@@ -1,4 +1,4 @@
-// Copyright 2010-2024 Google LLC
+// Copyright 2010-2022 Google LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "absl/log/check.h"
-#include "absl/types/span.h"
 #include "ortools/constraint_solver/constraint_solver.h"
 #include "ortools/constraint_solver/constraint_solveri.h"
 #include "ortools/constraint_solver/routing_types.h"
@@ -621,7 +620,7 @@ bool PairNodeSwapActiveOperator<swap_first>::MakeNeighbor() {
 class PickupAndDeliveryData {
  public:
   PickupAndDeliveryData(int num_nodes,
-                        absl::Span<const PickupDeliveryPair> pairs);
+                        const std::vector<PickupDeliveryPair>& pairs);
   bool IsPickupNode(int64_t node) const {
     DCHECK_LT(node, is_pickup_node_.size());
     return is_pickup_node_[node];
@@ -677,7 +676,7 @@ class RelocateSubtrip : public PathOperator {
   /// Relocates the subtrip ending at chain_first_node. It must be a delivery.
   bool RelocateSubTripFromDelivery(int64_t chain_last_node,
                                    int64_t insertion_node);
-  void SetPath(absl::Span<const int64_t> path, int path_id);
+  void SetPath(const std::vector<int64_t>& path, int path_id);
 
   const PickupAndDeliveryData pd_data_;
   // Represents the set of pairs that have been opened during a call to

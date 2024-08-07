@@ -1,4 +1,4 @@
-// Copyright 2010-2024 Google LLC
+// Copyright 2010-2022 Google LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -23,8 +23,6 @@
 #if defined(_MSC_VER)
 #define WIN32_LEAN_AND_MEAN  // disables several conflicting macros
 #include <windows.h>
-#elif defined(__MINGW32__) || defined(__MINGW64__)
-#include <windows.h>
 #elif defined(__GNUC__)
 #include <dlfcn.h>
 #endif
@@ -38,7 +36,7 @@ class DynamicLibrary {
       return;
     }
 
-#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
+#if defined(_MSC_VER)
     FreeLibrary(static_cast<HINSTANCE>(library_handle_));
 #elif defined(__GNUC__)
     dlclose(library_handle_);
@@ -47,7 +45,7 @@ class DynamicLibrary {
 
   bool TryToLoad(const std::string& library_name) {
     library_name_ = std::string(library_name);
-#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
+#if defined(_MSC_VER)
     library_handle_ = static_cast<void*>(LoadLibraryA(library_name.c_str()));
 #elif defined(__GNUC__)
     library_handle_ = dlopen(library_name.c_str(), RTLD_NOW);
@@ -59,15 +57,15 @@ class DynamicLibrary {
 
   template <typename T>
   std::function<T> GetFunction(const char* function_name) {
-#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
-    // On Windows, avoid casting to void*: not supported by MinGW.
-    FARPROC function_address =
-        GetProcAddress(static_cast<HINSTANCE>(library_handle_), function_name);
-#else   // Not Windows.
-    const void* function_address = dlsym(library_handle_, function_name);
-#endif  // MinGW.
+    const void* function_address =
+#if defined(_MSC_VER)
+        static_cast<void*>(GetProcAddress(
+            static_cast<HINSTANCE>(library_handle_), function_name));
+#else
+        dlsym(library_handle_, function_name);
+#endif
 
-    CHECK(function_address)
+    CHECK(function_address != nullptr)
         << "Error: could not find function " << std::string(function_name)
         << " in " << library_name_;
 
@@ -99,21 +97,11 @@ class DynamicLibrary {
 
   template <typename Ret, typename... Args>
   struct TypeParser<Ret(Args...)> {
-#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
-    // Windows: take a FARPROC as argument.
-    static std::function<Ret(Args...)> CreateFunction(
-        const FARPROC function_address) {
-      return std::function<Ret(Args...)>(
-          reinterpret_cast<Ret (*)(Args...)>(function_address));
-    }
-#else
-    // Not Windows: take a void* as argument.
     static std::function<Ret(Args...)> CreateFunction(
         const void* function_address) {
       return std::function<Ret(Args...)>(reinterpret_cast<Ret (*)(Args...)>(
           const_cast<void*>(function_address)));
     }
-#endif
   };
 };
 

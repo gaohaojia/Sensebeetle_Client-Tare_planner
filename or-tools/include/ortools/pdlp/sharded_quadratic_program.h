@@ -1,4 +1,4 @@
-// Copyright 2010-2024 Google LLC
+// Copyright 2010-2022 Google LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -24,7 +24,6 @@
 #include "ortools/base/threadpool.h"
 #include "ortools/pdlp/quadratic_program.h"
 #include "ortools/pdlp/sharder.h"
-#include "ortools/util/logging.h"
 
 namespace operations_research::pdlp {
 
@@ -38,10 +37,7 @@ class ShardedQuadraticProgram {
  public:
   // Requires `num_shards` >= `num_threads` >= 1.
   // Note that the `qp` is intentionally passed by value.
-  // If `logger` is not nullptr, warns about unbalanced matrices using it;
-  // otherwise warns via Google standard logging.
-  ShardedQuadraticProgram(QuadraticProgram qp, int num_threads, int num_shards,
-                          operations_research::SolverLogger* logger = nullptr);
+  ShardedQuadraticProgram(QuadraticProgram qp, int num_threads, int num_shards);
 
   // Movable but not copyable.
   ShardedQuadraticProgram(const ShardedQuadraticProgram&) = delete;

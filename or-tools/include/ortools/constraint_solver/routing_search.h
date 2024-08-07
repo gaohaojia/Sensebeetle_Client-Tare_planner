@@ -1,4 +1,4 @@
-// Copyright 2010-2024 Google LLC
+// Copyright 2010-2022 Google LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -33,7 +33,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/log/check.h"
 #include "absl/types/span.h"
@@ -41,9 +40,7 @@
 #include "ortools/constraint_solver/constraint_solver.h"
 #include "ortools/constraint_solver/constraint_solveri.h"
 #include "ortools/constraint_solver/routing.h"
-#include "ortools/constraint_solver/routing_enums.pb.h"
 #include "ortools/constraint_solver/routing_parameters.pb.h"
-#include "ortools/constraint_solver/routing_types.h"
 #include "ortools/constraint_solver/routing_utils.h"
 
 namespace operations_research {
@@ -221,8 +218,6 @@ class IntVarFilteredHeuristic {
       delta_->SetValue(vars_[index], value);
     }
   }
-  /// Returns the indices of the nodes currently in the insertion delta.
-  const std::vector<int>& delta_indices() const { return delta_indices_; }
   /// Returns the value of the variable of index 'index' in the last committed
   /// solution.
   int64_t Value(int64_t index) const {
@@ -275,7 +270,7 @@ class RoutingFilteredHeuristic : public IntVarFilteredHeuristic {
                            LocalSearchFilterManager* filter_manager);
   ~RoutingFilteredHeuristic() override {}
   /// Builds a solution starting from the routes formed by the next accessor.
-  Assignment* BuildSolutionFromRoutes(
+  const Assignment* BuildSolutionFromRoutes(
       const std::function<int64_t(int64_t)>& next_accessor);
   RoutingModel* model() const { return model_; }
   /// Returns the end of the start chain of vehicle,
@@ -1071,10 +1066,7 @@ class LocalCheapestInsertionFilteredHeuristic
       std::function<int64_t(int64_t, int64_t, int64_t)> evaluator,
       RoutingSearchParameters::PairInsertionStrategy pair_insertion_strategy,
       LocalSearchFilterManager* filter_manager,
-      BinCapacities* bin_capacities = nullptr,
-      std::function<bool(const std::vector<RoutingModel::VariableValuePair>&,
-                         std::vector<RoutingModel::VariableValuePair>*)>
-          optimize_on_insertion = nullptr);
+      BinCapacities* bin_capacities = nullptr);
   ~LocalCheapestInsertionFilteredHeuristic() override {}
   bool BuildSolutionInternal() override;
   std::string DebugString() const override {
@@ -1120,27 +1112,12 @@ class LocalCheapestInsertionFilteredHeuristic
   bool InsertPair(int64_t pickup, int64_t insert_pickup_after, int64_t delivery,
                   int64_t insert_delivery_after, int vehicle);
 
-  // Runs an internal optimization. Returns true if the solution was changed.
-  bool OptimizeOnInsertion(std::vector<int> delta_indices);
-
-  // Returns true if bin capacities should be updated.
-  // TODO(user): Allow updating bin capacities when we do internal
-  // optimizations.
-  bool MustUpdateBinCapacities() const {
-    return bin_capacities_ != nullptr && optimize_on_insertion_ == nullptr;
-  }
-
   std::vector<Seed> insertion_order_;
   const RoutingSearchParameters::PairInsertionStrategy pair_insertion_strategy_;
   InsertionSequenceContainer insertion_container_;
   InsertionSequenceGenerator insertion_generator_;
 
   BinCapacities* const bin_capacities_;
-
-  std::function<bool(const std::vector<RoutingModel::VariableValuePair>&,
-                     std::vector<RoutingModel::VariableValuePair>*)>
-      optimize_on_insertion_;
-  bool synchronize_insertion_optimizer_ = true;
 };
 
 /// Filtered-base decision builder based on the addition heuristic, extending

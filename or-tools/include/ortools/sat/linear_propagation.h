@@ -1,4 +1,4 @@
-// Copyright 2010-2024 Google LLC
+// Copyright 2010-2022 Google LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -48,6 +48,8 @@ class CustomFifoQueue {
  public:
   CustomFifoQueue() = default;
 
+  // Note that this requires the queue to be empty or to never have been poped
+  // before.
   void IncreaseSize(int n);
 
   int Pop();
@@ -81,7 +83,7 @@ class CustomFifoQueue {
 
 // An enforced constraint can be in one of these 4 states.
 // Note that we rely on the integer encoding to take 2 bits for optimization.
-enum class EnforcementStatus {
+enum EnforcementStatus {
   // One enforcement literal is false.
   IS_FALSE = 0,
   // More than two literals are unassigned.
@@ -125,10 +127,6 @@ class EnforcementPropagator : SatPropagator {
       absl::Span<const IntegerLiteral> integer_reason);
 
   EnforcementStatus Status(EnforcementId id) const { return statuses_[id]; }
-
-  // Recompute the status from the current assignment.
-  // This should only used in DCHECK().
-  EnforcementStatus DebugStatus(EnforcementId id);
 
  private:
   absl::Span<Literal> GetSpan(EnforcementId id);
@@ -183,10 +181,7 @@ class LinearPropagator : public PropagatorInterface, ReversibleInterface {
   void SetLevel(int level) final;
 
   // Adds a new constraint to the propagator.
-  // We support adding constraint at a positive level:
-  //  - This will push new propagation right away.
-  //  - This will returns false if the constraint is currently a conflict.
-  bool AddConstraint(absl::Span<const Literal> enforcement_literals,
+  void AddConstraint(absl::Span<const Literal> enforcement_literals,
                      absl::Span<const IntegerVariable> vars,
                      absl::Span<const IntegerValue> coeffs,
                      IntegerValue upper_bound);
@@ -249,9 +244,8 @@ class LinearPropagator : public PropagatorInterface, ReversibleInterface {
   // IntegerVariable that changed since the last clear.
   SparseBitset<IntegerVariable> modified_vars_;
 
-  // Per constraint info used during propagation. Note that we keep pointer for
-  // the rev_size/rhs there, so we do need a deque.
-  std::deque<ConstraintInfo> infos_;
+  // Per constraint info used during propagation.
+  std::vector<ConstraintInfo> infos_;
 
   // Buffer of the constraints data.
   //
@@ -273,10 +267,8 @@ class LinearPropagator : public PropagatorInterface, ReversibleInterface {
   std::vector<bool> in_queue_;
   CustomFifoQueue propagation_queue_;
 
-  // Unenforced constraints are marked as "in_queue_" but not actually added
-  // to the propagation_queue_.
-  int rev_unenforced_size_ = 0;
-  std::vector<int> unenforced_constraints_;
+  int rev_at_false_size_ = 0;
+  std::vector<int> in_queue_and_at_false_;
 
   // Watchers.
   absl::StrongVector<IntegerVariable, bool> is_watched_;

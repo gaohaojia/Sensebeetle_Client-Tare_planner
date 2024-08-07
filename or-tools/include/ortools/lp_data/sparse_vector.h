@@ -1,4 +1,4 @@
-// Copyright 2010-2024 Google LLC
+// Copyright 2010-2022 Google LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -901,13 +901,10 @@ void SparseVector<IndexType, IteratorType>::AddMultipleToSparseVectorInternal(
       ++ia;
       ++ib;
     } else if (index_a < index_b) {
-      const Fractional new_value = multiplier * a.GetCoefficient(ia);
-      if (std::abs(new_value) > drop_tolerance) {
-        c.MutableIndex(ic) = index_a;
-        c.MutableCoefficient(ic) = new_value;
-        ++ic;
-      }
+      c.MutableIndex(ic) = index_a;
+      c.MutableCoefficient(ic) = multiplier * a.GetCoefficient(ia);
       ++ia;
+      ++ic;
     } else {  // index_b < index_a
       c.MutableIndex(ic) = b.GetIndex(ib);
       c.MutableCoefficient(ic) = b.GetCoefficient(ib);
@@ -916,13 +913,10 @@ void SparseVector<IndexType, IteratorType>::AddMultipleToSparseVectorInternal(
     }
   }
   while (ia < size_a) {
-    const Fractional new_value = multiplier * a.GetCoefficient(ia);
-    if (std::abs(new_value) > drop_tolerance) {
-      c.MutableIndex(ic) = a.GetIndex(ia);
-      c.MutableCoefficient(ic) = new_value;
-      ++ic;
-    }
+    c.MutableIndex(ic) = a.GetIndex(ia);
+    c.MutableCoefficient(ic) = multiplier * a.GetCoefficient(ia);
     ++ia;
+    ++ic;
   }
   while (ib < size_b) {
     c.MutableIndex(ic) = b.GetIndex(ib);
@@ -933,7 +927,6 @@ void SparseVector<IndexType, IteratorType>::AddMultipleToSparseVectorInternal(
   c.ResizeDown(ic);
   c.may_contain_duplicates_ = false;
   c.Swap(accumulator_vector);
-  DCHECK(accumulator_vector->IsCleanedUp());
 }
 
 template <typename IndexType, typename IteratorType>

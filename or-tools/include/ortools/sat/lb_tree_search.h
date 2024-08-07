@@ -1,4 +1,4 @@
-// Copyright 2010-2024 Google LLC
+// Copyright 2010-2022 Google LLC
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -24,7 +24,6 @@
 
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
-#include "absl/types/span.h"
 #include "ortools/base/strong_vector.h"
 #include "ortools/sat/integer.h"
 #include "ortools/sat/integer_search.h"
@@ -132,7 +131,7 @@ class LbTreeSearch {
   // Returns a small number of decision needed to reach the same conflict.
   // We basically reduce the number of decision at each level to 1.
   std::vector<Literal> ExtractDecisions(int base_level,
-                                        absl::Span<const Literal> conflict);
+                                        const std::vector<Literal>& conflict);
 
   // Used in the solve logs.
   std::string SmallProgressString() const;
